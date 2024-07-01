@@ -1,0 +1,206 @@
+g.input_image = NULL;
+g.input_sprite = NULL;
+g.progress_image = NULL;
+g.progress_sprite = NULL;
+g.bullet_image = NULL;
+g.bullet_sprites = NULL;
+g.message_sprite = NULL;
+
+g.time = NULL;
+g.progress = NULL;
+g.progress_bar = 0;
+g.progress_start = 0;
+g.animations;
+g.animations_at = 0;
+g.root_mounted = 0;
+
+
+// helper functions
+
+fun init() {
+   g.input_image = Image("#202020.png").Scale(600, 100);
+   g.input_sprite = Sprite(g.input_image);
+   g.progress_image = Image("#818181.png").Scale(600 - 10, 100 - 10);
+   g.progress_sprite = Sprite(g.progress_image);
+   g.bullet_image = Image.Text("*", 0.357, 0.357, 0.357, 1, "Fixed 80");
+
+   position = centered(g.input_image);
+   g.input_sprite.SetPosition(position.x, position.y);
+   g.progress_sprite.SetPosition(position.x + 5, position.y + 5);
+   g.input_sprite.SetOpacity(0);
+   g.progress_sprite.SetOpacity(0);
+
+   fade(g.input_sprite, 1000, 0, 1, ease_out_cubic);
+}
+
+fun centered(image, offset) {
+   screen_width = Window.GetWidth();
+   screen_height = Window.GetHeight();
+   width = image.GetWidth();
+   height = image.GetHeight();
+   position.x = (screen_width - width) / 2 + (offset || 0);
+   position.y = (screen_height - height) / 2 + (offset || 0);
+   return position;
+}
+
+fun fade(elements, duration, opacity_start, opacity_end, easing) {
+   if (!elements[0]) {
+      elements[0] = elements;
+   }
+   animation.elements = elements;
+   animation.start_time = g.time;
+   animation.duration = duration / 1000;
+   animation.opacity_start = opacity_start;
+   animation.opacity_end = opacity_end;
+   animation.easing = easing;
+   g.animations[g.animations_at] = animation;
+   g.animations_at++;
+}
+
+fun ease_out_cubic(t) {
+   t = t - 1;
+   return t * t * t + 1;
+}
+
+fun ease_in_cubic(t) {
+   return t * t * t;
+}
+
+
+// plymouth callbacks
+
+fun on_mode_normal() {
+   // password -> normal means password is being validated
+   if (g.bullet_sprites) {
+      fade(g.bullet_sprites, 300, 1, 0.4, ease_out_cubic);
+   }
+}
+
+fun on_mode_password(prompt, bullets) {
+   // update password bullets, this can be improved by fading
+   // the characters out, at least when the password is invalid
+   // (bullets is 0 and previous screen was normal)
+   bullet_width = g.bullet_image.GetWidth();
+   input_width = g.input_image.GetWidth();
+   input_x = g.input_sprite.GetX();
+   input_y = g.input_sprite.GetY();
+   max_bullets = Math.Int((input_width - 20) / bullet_width);
+   bullets = Math.Min(bullets, max_bullets);
+
+   for (i = 0; i < bullets; i++) {
+      if (!g.bullet_sprites[i]) {
+         x = input_x + 15 + i * bullet_width;
+         y = input_y + 35;
+         g.bullet_sprites[i] = Sprite(g.bullet_image);
+         g.bullet_sprites[i].SetPosition(x, y);
+      }
+   }
+   for (i = bullets; g.bullet_sprites[i]; i++) {
+      g.bullet_sprites[i] = NULL;
+   }
+}
+
+fun on_root_mount() {
+   // encryption was successful
+   if (g.root_mounted) {
+      return;
+   }
+   g.root_mounted = 1;
+   g.progress_bar = 1;
+   g.progress_sprite.SetOpacity(1);
+   fade(g.bullet_sprites, 200, 0.4, 0, ease_in_cubic);
+}
+
+fun on_progress(time, progress) {
+   // track time for animations
+   g.time = time;
+   g.progress = progress;
+}
+
+fun on_update() {
+   // fade animations
+   if (g.time) {
+      for (i = 0; i < g.animations_at; i++) {
+         animation = g.animations[i];
+         if (!animation) {
+            continue;
+         }
+         if (!animation.start_time) {
+            animation.start_time = g.time;
+         }
+         elapsed = g.time - animation.start_time;
+         opacity = elapsed / animation.duration;
+         opacity = animation.easing(opacity);
+         opacity = Math.Min(1, opacity);
+         opacity = animation.opacity_start + (animation.opacity_end - animation.opacity_start) * opacity;
+
+         for (j = 0; animation.elements[j]; j++) {
+            animation.elements[j].SetOpacity(opacity);
+         }
+         if (elapsed >= animation.duration) {
+            g.animations[i] = NULL;
+         }
+      }
+   }
+
+   // progress bar
+   if (g.progress && g.progress_bar) {
+      if (!g.progress_start) {
+         g.progress_start = g.progress;
+      }
+      width = g.progress_image.GetWidth();
+      width *= (g.progress - g.progress_start) / (1 - g.progress_start);
+      height = g.progress_image.GetHeight();
+      image = g.progress_image.Scale(width, height);
+      g.progress_sprite.SetImage(image);
+      g.progress_bar = g.progress < 1;
+   }
+}
+
+fun on_message(text) {
+   // show message, more than one should be visible at once,
+   // and they should probably disappear
+   if (!g.message_sprite) {
+      sprite = Sprite();
+      sprite.SetPosition(10, 10);
+      g.message_sprite = sprite;
+   }
+   image = Image.Text(text, 0.851, 0.851, 0.851, 1, "Sans 20");
+   g.message_sprite.SetImage(image);
+}
+
+// TODO implement these?
+
+fun on_status(status) {}
+
+fun on_mode_question(prompt, input) {}
+
+fun on_mode_prompt(prompt, input, is_secret) {}
+
+fun on_quit() {}
+
+
+Plymouth.SetRefreshRate(60);
+Plymouth.SetDisplayNormalFunction(on_mode_normal);
+Plymouth.SetDisplayPasswordFunction(on_mode_password);
+Plymouth.SetRootMountedFunction(on_root_mount);
+Plymouth.SetBootProgressFunction(on_progress);
+Plymouth.SetRefreshFunction(on_update);
+Plymouth.SetMessageFunction(on_message);
+Plymouth.SetUpdateStatusFunction(on_status);
+Plymouth.SetDisplayQuestionFunction(on_mode_question);
+Plymouth.SetDisplayPromptFunction(on_mode_prompt);
+Plymouth.SetQuitFunction(on_quit);
+
+
+mode = Plymouth.GetMode();
+if (mode != "boot") {
+   image = Image.Text("goodbye", 0.851, 0.851, 0.851, 1, "Sans 20");
+   position = centered(image);
+   sprite = Sprite(image);
+   sprite.SetPosition(position.x, position.y);
+   fade(sprite, 3000, 0, 1, ease_out_cubic);
+   return;
+}
+
+init();

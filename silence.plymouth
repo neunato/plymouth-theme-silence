@@ -1,0 +1,7 @@
+[Plymouth Theme]
+Name=Silence
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/silence
+ScriptFile=/usr/share/plymouth/themes/silence/silence.script
