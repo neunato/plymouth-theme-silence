@@ -9,7 +9,6 @@ g.message_sprite = NULL;
 g.time = NULL;
 g.progress = NULL;
 g.progress_bar = 0;
-g.progress_start = 0;
 g.animations;
 g.animations_at = 0;
 g.root_mounted = 0;
@@ -145,11 +144,7 @@ fun on_update() {
 
    // progress bar
    if (g.progress && g.progress_bar) {
-      if (!g.progress_start) {
-         g.progress_start = g.progress;
-      }
-      width = g.progress_image.GetWidth();
-      width *= (g.progress - g.progress_start) / (1 - g.progress_start);
+      width = g.progress_image.GetWidth() * g.progress;
       height = g.progress_image.GetHeight();
       image = g.progress_image.Scale(width, height);
       g.progress_sprite.SetImage(image);
