@@ -90,7 +90,7 @@ fun on_mode_password(prompt, bullets) {
    for (i = 0; i < bullets; i++) {
       if (!g.bullet_sprites[i]) {
          x = input_x + 15 + i * bullet_width;
-         y = input_y + 35;
+         y = input_y + 17;
          g.bullet_sprites[i] = Sprite(g.bullet_image);
          g.bullet_sprites[i].SetPosition(x, y);
       }
