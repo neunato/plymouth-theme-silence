@@ -105,22 +105,26 @@ fun on_mode_password(prompt, bullets) {
    // update password bullets, this can be improved by fading
    // the characters out, at least when the password is invalid
    // (bullets is 0 and previous screen was normal)
-   bullet_width = g.images.bullet.GetWidth();
-   bullet_height = g.images.bullet.GetHeight();
-   bullet_padding = bullet_width * 0.2;
+   if (bullets) {
+      bullet_image = g.images.bullet;
+      bullet_max_size = bullet_image.GetWidth();
+      bullet_padding = 0.2;
+      bullet_size = (g.input_width - g.input_padding * 2) / (bullets * (1 + bullet_padding) - bullet_padding);
+      bullet_size = Math.Min(bullet_size, bullet_max_size);
+      bullet_padding = bullet_size * bullet_padding;
+      input_x = g.sprites.input.GetX() + g.input_padding;
+      input_y = g.sprites.input.GetY();
 
-   input_x = g.sprites.input.GetX();
-   input_y = g.sprites.input.GetY();
-   max_bullets = Math.Int(g.input_width / (bullet_width + bullet_padding));
-   bullets = Math.Min(bullets, max_bullets);
+      if (bullet_size < bullet_max_size) {
+         bullet_image = bullet_image.Scale(bullet_size, bullet_size);
+      }
+   }
 
    for (i = 0; i < bullets; i++) {
-      if (!g.sprites.bullets[i]) {
-         x = input_x + bullet_padding + (bullet_width + bullet_padding) * i;
-         y = input_y + (g.input_height - bullet_height) / 2;
-         g.sprites.bullets[i] = Sprite(g.images.bullet);
-         g.sprites.bullets[i].SetPosition(x, y);
-      }
+      x = input_x + (bullet_size + bullet_padding) * i;
+      y = input_y + (g.input_height - bullet_size) / 2;
+      g.sprites.bullets[i] = Sprite(bullet_image);
+      g.sprites.bullets[i].SetPosition(x, y);
    }
    for (i = bullets; g.sprites.bullets[i]; i++) {
       g.sprites.bullets[i] = NULL;
