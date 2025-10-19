@@ -1,10 +1,26 @@
-g.input_image = NULL;
-g.input_sprite = NULL;
-g.progress_image = NULL;
-g.progress_sprite = NULL;
-g.bullet_image = NULL;
-g.bullet_sprites = NULL;
-g.message_sprite = NULL;
+g.images.background = Image("images/background.png");
+g.images.input = Image("images/input.png");
+g.images.input_left = Image("images/input-left.png");
+g.images.input_right = Image("images/input-right.png");
+g.images.progress = Image("images/progress.png");
+g.images.progress_left = Image("images/progress-left.png");
+g.images.progress_right = Image("images/progress-right.png");
+g.images.bullet = Image("images/bullet.png");
+
+g.input_border_radius = g.images.input_left.GetWidth();
+g.input_width = 600 - g.input_border_radius * 2;
+g.input_height = g.images.input_left.GetHeight();
+g.input_padding = (g.input_height - g.images.progress_left.GetHeight()) / 2;
+
+g.sprites.background = NULL;
+g.sprites.input = NULL;
+g.sprites.input_left = NULL;
+g.sprites.input_right = NULL;
+g.sprites.progress = NULL;
+g.sprites.progress_left = NULL;
+g.sprites.progress_right = NULL;
+g.sprites.bullets = NULL;
+g.sprites.message = NULL;
 
 g.time = NULL;
 g.progress = NULL;
@@ -17,19 +33,25 @@ g.root_mounted = 0;
 // helper functions
 
 fun init() {
-   g.input_image = Image("#202020.png").Scale(600, 100);
-   g.input_sprite = Sprite(g.input_image);
-   g.progress_image = Image("#818181.png").Scale(600 - 10, 100 - 10);
-   g.progress_sprite = Sprite(g.progress_image);
-   g.bullet_image = Image.Text("*", 0.357, 0.357, 0.357, 1, "Fixed 80");
+   screen_width = Window.GetWidth();
+   screen_height = Window.GetHeight();
+   input_image = g.images.input.Scale(g.input_width, g.input_height);
+   background_image = g.images.background.Scale(screen_width, screen_height);
 
-   position = centered(g.input_image);
-   g.input_sprite.SetPosition(position.x, position.y);
-   g.progress_sprite.SetPosition(position.x + 5, position.y + 5);
-   g.input_sprite.SetOpacity(0);
-   g.progress_sprite.SetOpacity(0);
+   g.sprites.background = Sprite(background_image);
+   g.sprites.input = Sprite(input_image);
+   g.sprites.input_left = Sprite(g.images.input_left);
+   g.sprites.input_right = Sprite(g.images.input_right);
+   g.sprites.message = Sprite();
 
-   fade(g.input_sprite, 1000, 0, 1, ease_out_cubic);
+   position = centered(input_image);
+   g.sprites.background.SetPosition(0, 0);
+   g.sprites.input.SetPosition(position.x, position.y);
+   g.sprites.input_left.SetPosition(position.x - g.input_border_radius, position.y);
+   g.sprites.input_right.SetPosition(position.x + g.input_width, position.y);
+   g.sprites.message.SetPosition(10, 10);
+
+   fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 1000, 0, 1, ease_out_cubic);
 }
 
 fun centered(image, offset) {
@@ -54,6 +76,10 @@ fun fade(elements, duration, opacity_start, opacity_end, easing) {
    animation.easing = easing;
    g.animations[g.animations_at] = animation;
    g.animations_at++;
+
+   for (i = 0; elements[i]; i++) {
+      elements[i].SetOpacity(opacity_start);
+   }
 }
 
 fun ease_out_cubic(t) {
@@ -70,8 +96,8 @@ fun ease_in_cubic(t) {
 
 fun on_mode_normal() {
    // password -> normal means password is being validated
-   if (g.bullet_sprites) {
-      fade(g.bullet_sprites, 300, 1, 0.4, ease_out_cubic);
+   if (g.sprites.bullets) {
+      fade(g.sprites.bullets, 300, 1, 0.4, ease_out_cubic);
    }
 }
 
@@ -79,23 +105,25 @@ fun on_mode_password(prompt, bullets) {
    // update password bullets, this can be improved by fading
    // the characters out, at least when the password is invalid
    // (bullets is 0 and previous screen was normal)
-   bullet_width = g.bullet_image.GetWidth();
-   input_width = g.input_image.GetWidth();
-   input_x = g.input_sprite.GetX();
-   input_y = g.input_sprite.GetY();
-   max_bullets = Math.Int((input_width - 20) / bullet_width);
+   bullet_width = g.images.bullet.GetWidth();
+   bullet_height = g.images.bullet.GetHeight();
+   bullet_padding = bullet_width * 0.2;
+
+   input_x = g.sprites.input.GetX();
+   input_y = g.sprites.input.GetY();
+   max_bullets = Math.Int(g.input_width / (bullet_width + bullet_padding));
    bullets = Math.Min(bullets, max_bullets);
 
    for (i = 0; i < bullets; i++) {
-      if (!g.bullet_sprites[i]) {
-         x = input_x + 15 + i * bullet_width;
-         y = input_y + 17;
-         g.bullet_sprites[i] = Sprite(g.bullet_image);
-         g.bullet_sprites[i].SetPosition(x, y);
+      if (!g.sprites.bullets[i]) {
+         x = input_x + bullet_padding + (bullet_width + bullet_padding) * i;
+         y = input_y + (g.input_height - bullet_height) / 2;
+         g.sprites.bullets[i] = Sprite(g.images.bullet);
+         g.sprites.bullets[i].SetPosition(x, y);
       }
    }
-   for (i = bullets; g.bullet_sprites[i]; i++) {
-      g.bullet_sprites[i] = NULL;
+   for (i = bullets; g.sprites.bullets[i]; i++) {
+      g.sprites.bullets[i] = NULL;
    }
 }
 
@@ -106,8 +134,11 @@ fun on_root_mount() {
    }
    g.root_mounted = 1;
    g.progress_bar = 1;
-   g.progress_sprite.SetOpacity(1);
-   fade(g.bullet_sprites, 200, 0.4, 0, ease_in_cubic);
+   g.sprites.progress = Sprite(g.images.progress);
+   g.sprites.progress_left = Sprite(g.images.progress_left);
+   g.sprites.progress_right = Sprite(g.images.progress_right);
+
+   fade(g.sprites.bullets, 200, 0.4, 0, ease_in_cubic);
 }
 
 fun on_progress(time, progress) {
@@ -144,10 +175,14 @@ fun on_update() {
 
    // progress bar
    if (g.progress && g.progress_bar) {
-      width = g.progress_image.GetWidth() * g.progress;
-      height = g.progress_image.GetHeight();
-      image = g.progress_image.Scale(width, height);
-      g.progress_sprite.SetImage(image);
+      width = (g.input_width - g.input_padding * 2) * g.progress;
+      height = g.input_height - g.input_padding * 2;
+      x = g.sprites.input.GetX() + g.input_padding;
+      y = g.sprites.input.GetY() + g.input_padding;
+      g.sprites.progress.SetImage(g.images.progress.Scale(width, height));
+      g.sprites.progress.SetPosition(x, y);
+      g.sprites.progress_left.SetPosition(x - g.input_border_radius, y);
+      g.sprites.progress_right.SetPosition(x + width, y);
       g.progress_bar = g.progress < 1;
    }
 }
@@ -155,13 +190,8 @@ fun on_update() {
 fun on_message(text) {
    // show message, more than one should be visible at once,
    // and they should probably disappear
-   if (!g.message_sprite) {
-      sprite = Sprite();
-      sprite.SetPosition(10, 10);
-      g.message_sprite = sprite;
-   }
    image = Image.Text(text, 0.851, 0.851, 0.851, 1, "Sans 20");
-   g.message_sprite.SetImage(image);
+   g.sprites.message.SetImage(image);
 }
 
 // TODO implement these?
