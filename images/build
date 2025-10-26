@@ -8,12 +8,11 @@ border_radius=12
 bullet_font_size=120
 bullet_font_family="Liberation-Sans"
 
-background_color="black"
 input_color="#202020"
 progress_color="#818181"
 bullet_color="#787878"
 
-magick -size 1x1 xc:"$background_color" -define png:compression-level=9 -define png:compression-strategy=0 -strip background.png
+rm *.png
 magick -size 1x1 xc:"$input_color" -define png:compression-level=9 -define png:compression-strategy=0 -strip input.png
 magick -size 1x1 xc:"$progress_color" -define png:compression-level=9 -define png:compression-strategy=0 -strip progress.png
 magick \( -size "$((border_radius * 4))x$((input_height * 2))" xc:none -antialias -fill "$input_color" -draw "roundrectangle 0,0 $((border_radius * 4)),$((input_height * 2)) $((border_radius * 2)),$((border_radius * 2))" \) -crop $((border_radius * 2))x$((input_height * 2))+0+0 +repage -resize 50% -define png:compression-level=9 -define png:compression-strategy=0 -strip input-left.png

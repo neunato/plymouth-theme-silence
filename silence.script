@@ -1,4 +1,3 @@
-g.images.background = Image("images/background.png");
 g.images.input = Image("images/input.png");
 g.images.input_left = Image("images/input-left.png");
 g.images.input_right = Image("images/input-right.png");
@@ -12,7 +11,6 @@ g.input_width = 600 - g.input_border_radius * 2;
 g.input_height = g.images.input_left.GetHeight();
 g.input_padding = (g.input_height - g.images.progress_left.GetHeight()) / 2;
 
-g.sprites.background = NULL;
 g.sprites.input = NULL;
 g.sprites.input_left = NULL;
 g.sprites.input_right = NULL;
@@ -33,19 +31,19 @@ g.root_mounted = 0;
 // helper functions
 
 fun init() {
+   Window.SetBackgroundTopColor(0, 0, 0);
+   Window.SetBackgroundBottomColor(0, 0, 0);
+
    screen_width = Window.GetWidth();
    screen_height = Window.GetHeight();
    input_image = g.images.input.Scale(g.input_width, g.input_height);
-   background_image = g.images.background.Scale(screen_width, screen_height);
 
-   g.sprites.background = Sprite(background_image);
    g.sprites.input = Sprite(input_image);
    g.sprites.input_left = Sprite(g.images.input_left);
    g.sprites.input_right = Sprite(g.images.input_right);
    g.sprites.message = Sprite();
 
    position = centered(input_image);
-   g.sprites.background.SetPosition(0, 0);
    g.sprites.input.SetPosition(position.x, position.y);
    g.sprites.input_left.SetPosition(position.x - g.input_border_radius, position.y);
    g.sprites.input_right.SetPosition(position.x + g.input_width, position.y);
