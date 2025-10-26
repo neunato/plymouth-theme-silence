@@ -31,8 +31,8 @@ g.root_mounted = 0;
 // helper functions
 
 fun init() {
-   Window.SetBackgroundTopColor(0, 0, 0);
-   Window.SetBackgroundBottomColor(0, 0, 0);
+   Window.SetBackgroundTopColor(0.118, 0.118, 0.18);         // https://catppuccin.com/palette - Mocha Base
+   Window.SetBackgroundBottomColor(0.118, 0.118, 0.18);      // https://catppuccin.com/palette - Mocha Base
 
    screen_width = Window.GetWidth();
    screen_height = Window.GetHeight();

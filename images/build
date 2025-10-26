@@ -8,9 +8,9 @@ border_radius=12
 bullet_font_size=120
 bullet_font_family="Liberation-Sans"
 
-input_color="#202020"
-progress_color="#818181"
-bullet_color="#787878"
+input_color="#b4befe"         # https://catppuccin.com/palette - Mocha Lavender
+progress_color="#313244"      # https://catppuccin.com/palette - Mocha Surface 0
+bullet_color="#313244"        # https://catppuccin.com/palette - Mocha Surface 0
 
 rm *.png
 magick -size 1x1 xc:"$input_color" -define png:compression-level=9 -define png:compression-strategy=0 -strip input.png
