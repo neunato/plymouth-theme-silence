@@ -115,10 +115,16 @@ fun on_mode_password(prompt, bullets) {
 
       if (bullet_size < bullet_max_size) {
          bullet_image = bullet_image.Scale(bullet_size, bullet_size);
+         for (i = 0; g.sprites.bullets[i]; i++) {
+            g.sprites.bullets[i] = NULL;
+         }
       }
    }
 
    for (i = 0; i < bullets; i++) {
+      if (g.sprites.bullets[i]) {
+         continue;
+      }
       x = input_x + (bullet_size + bullet_padding) * i;
       y = input_y + (g.input_height - bullet_size) / 2;
       g.sprites.bullets[i] = Sprite(bullet_image);
