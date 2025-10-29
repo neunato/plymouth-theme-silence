@@ -25,6 +25,7 @@ g.sprites.message = NULL;
 g.mode = NULL;
 g.time = NULL;
 g.progress_bar = 0;
+g.progress_start = 0;
 g.animations;
 g.animations_at = 0;
 g.root_mounted = 0;
@@ -237,6 +238,8 @@ fun on_progress(time, progress) {
 
    // progress bar
    if (g.progress_bar) {
+      g.progress_start = g.progress_start || progress;
+      progress = (progress - g.progress_start) / (1 - g.progress_start);
       width = (g.input_width - g.input_padding * 2) * progress;
       height = g.input_height - g.input_padding * 2;
       x = g.input_x + g.input_padding;
