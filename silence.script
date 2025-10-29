@@ -24,7 +24,6 @@ g.sprites.message = NULL;
 
 g.mode = NULL;
 g.time = NULL;
-g.progress = NULL;
 g.progress_bar = 0;
 g.animations;
 g.animations_at = 0;
@@ -214,36 +213,31 @@ fun on_root_mount() {
 }
 
 fun on_progress(time, progress) {
-   // track time for animations
+   // animations
    g.time = time;
-   g.progress = progress;
-
-   // fade animations
-   if (g.time) {
-      for (i = 0; i < g.animations_at; i++) {
-         animation = g.animations[i];
-         if (!animation) {
-            continue;
-         }
-         if (!animation.start_time) {
-            animation.start_time = g.time;
-         }
-         elapsed = g.time - animation.start_time;
-         if (elapsed < animation.delay) {
-            continue;
-         }
-         elapsed -= animation.delay;
-         progress = elapsed / animation.duration;
-         animation.callback(progress, animation);
-         if (progress >= 1) {
-            g.animations[i] = NULL;
-         }
+   for (i = 0; i < g.animations_at; i++) {
+      animation = g.animations[i];
+      if (!animation) {
+         continue;
+      }
+      if (!animation.start_time) {
+         animation.start_time = g.time;
+      }
+      elapsed = g.time - animation.start_time;
+      if (elapsed < animation.delay) {
+         continue;
+      }
+      elapsed -= animation.delay;
+      animation_progress = elapsed / animation.duration;
+      animation.callback(animation_progress, animation);
+      if (animation_progress >= 1) {
+         g.animations[i] = NULL;
       }
    }
 
    // progress bar
-   if (g.progress && g.progress_bar) {
-      width = (g.input_width - g.input_padding * 2) * g.progress;
+   if (g.progress_bar) {
+      width = (g.input_width - g.input_padding * 2) * progress;
       height = g.input_height - g.input_padding * 2;
       x = g.input_x + g.input_padding;
       y = g.input_y + g.input_padding;
