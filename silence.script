@@ -6,10 +6,10 @@ g.images.progress_left = Image("images/progress-left.png");
 g.images.progress_right = Image("images/progress-right.png");
 g.images.bullet = Image("images/bullet.png");
 
-g.input_border_radius = g.images.input_left.GetWidth();
-g.input_width = 600 - g.input_border_radius * 2;
-g.input_height = g.images.input_left.GetHeight();
-g.input_padding = (g.input_height - g.images.progress_left.GetHeight()) / 2;
+g.input_border_radius = NULL;
+g.input_width = NULL;
+g.input_height = NULL;
+g.input_padding = NULL;
 
 g.sprites.input = NULL;
 g.sprites.input_left = NULL;
@@ -34,19 +34,21 @@ fun init() {
    Window.SetBackgroundTopColor(0.118, 0.118, 0.18);         // https://catppuccin.com/palette - Mocha Base
    Window.SetBackgroundBottomColor(0.118, 0.118, 0.18);      // https://catppuccin.com/palette - Mocha Base
 
-   screen_width = Window.GetWidth();
-   screen_height = Window.GetHeight();
+   g.input_border_radius = g.images.input_left.GetWidth();
+   g.input_width = 600 - g.input_border_radius * 2;
+   g.input_height = g.images.input_left.GetHeight();
+   g.input_padding = (g.input_height - g.images.progress_left.GetHeight()) / 2;
+
    input_image = g.images.input.Scale(g.input_width, g.input_height);
+   position = centered(input_image);
 
    g.sprites.input = Sprite(input_image);
    g.sprites.input_left = Sprite(g.images.input_left);
    g.sprites.input_right = Sprite(g.images.input_right);
+   g.sprites.input.SetPosition(g.input_x, g.input_y);
+   g.sprites.input_left.SetPosition(g.input_x - g.input_border_radius, g.input_y);
+   g.sprites.input_right.SetPosition(g.input_x + g.input_width, g.input_y);
    g.sprites.message = Sprite();
-
-   position = centered(input_image);
-   g.sprites.input.SetPosition(position.x, position.y);
-   g.sprites.input_left.SetPosition(position.x - g.input_border_radius, position.y);
-   g.sprites.input_right.SetPosition(position.x + g.input_width, position.y);
    g.sprites.message.SetPosition(10, 10);
 
    fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 1000, 0, 0, 1, ease_out_cubic);
@@ -71,8 +73,10 @@ fun new_animation(elements, duration, delay, callback) {
    animation.duration = duration / 1000;
    animation.delay = delay / 1000;
    animation.callback = callback;
-   g.animations[g.animations_at] = animation;
-   g.animations_at++;
+   if (animation.elements) {
+      g.animations[g.animations_at] = animation;
+      g.animations_at++;
+   }
    return animation;
 }
 
