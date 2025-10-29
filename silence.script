@@ -29,6 +29,9 @@ g.progress_bar = 0;
 g.animations;
 g.animations_at = 0;
 g.root_mounted = 0;
+g.layer1 = 1;
+g.layer2 = 2;
+g.layer3 = 3;
 
 
 // helper functions
@@ -51,11 +54,11 @@ fun init() {
    g.sprites.input = Sprite(input_image);
    g.sprites.input_left = Sprite(g.images.input_left);
    g.sprites.input_right = Sprite(g.images.input_right);
-   g.sprites.input.SetPosition(g.input_x, g.input_y);
-   g.sprites.input_left.SetPosition(g.input_x - g.input_border_radius, g.input_y);
-   g.sprites.input_right.SetPosition(g.input_x + g.input_width, g.input_y);
+   g.sprites.input.SetPosition(g.input_x, g.input_y, g.layer1);
+   g.sprites.input_left.SetPosition(g.input_x - g.input_border_radius, g.input_y, g.layer1);
+   g.sprites.input_right.SetPosition(g.input_x + g.input_width, g.input_y, g.layer1);
    g.sprites.message = Sprite();
-   g.sprites.message.SetPosition(10, 10);
+   g.sprites.message.SetPosition(10, 10, g.layer3);
 
    fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 1000, 0, 0, 1, ease_out_cubic);
 }
@@ -191,7 +194,7 @@ fun on_mode_password(prompt, bullets) {
       x = g.input_x + g.input_padding + (bullet_size + bullet_padding) * i;
       y = g.input_y + (g.input_height - bullet_size) / 2;
       g.sprites.bullets[i] = Sprite(bullet_image);
-      g.sprites.bullets[i].SetPosition(x, y);
+      g.sprites.bullets[i].SetPosition(x, y, g.layer2);
    }
    for (i = bullets; g.sprites.bullets[i]; i++) {
       g.sprites.bullets[i] = NULL;
@@ -249,9 +252,9 @@ fun on_progress(time, progress) {
       x = g.input_x + g.input_padding;
       y = g.input_y + g.input_padding;
       g.sprites.progress.SetImage(g.images.progress.Scale(width, height));
-      g.sprites.progress.SetPosition(x, y);
-      g.sprites.progress_left.SetPosition(x - g.input_border_radius, y);
-      g.sprites.progress_right.SetPosition(x + width, y);
+      g.sprites.progress.SetPosition(x, y, g.layer3);
+      g.sprites.progress_left.SetPosition(x - g.input_border_radius, y, g.layer3);
+      g.sprites.progress_right.SetPosition(x + width, y, g.layer3);
       g.progress_bar = g.progress < 1;
    }
 }
