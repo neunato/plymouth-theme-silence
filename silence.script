@@ -96,6 +96,23 @@ fun fade_callback(progress, animation) {
    }
 }
 
+fun shake(element, duration) {
+   // note that running shake on an already shaking (or otherwise moving)
+   // element would break things badly
+   animation = new_animation(element, duration, shake_callback);
+   for (i = 0; animation.elements[i]; i++) {
+      animation.data.x_start[i] = animation.elements[i].GetX();
+   }
+}
+
+fun shake_callback(progress, animation) {
+   x_start = animation.data.x_start;
+   x = ease_shake(progress) * 10;
+   for (i = 0; animation.elements[i]; i++) {
+      animation.elements[i].SetX(x_start[i] + x);
+   }
+}
+
 fun ease_out_cubic(t) {
    t = t - 1;
    return t * t * t + 1;
@@ -105,6 +122,21 @@ fun ease_in_cubic(t) {
    return t * t * t;
 }
 
+fun ease_shake(t) {
+   frequency = 6;
+   decay = 3;
+   return Math.Sin(t * frequency * 2 * Math.Pi) * exp(-decay * t);
+}
+
+fun exp(x) {
+   sum = 1;
+   term = 1;
+   for (n = 1; n < 20; n++) {
+      term *= x / n;
+      sum += term;
+   }
+   return sum;
+}
 
 // plymouth callbacks
 
