@@ -78,7 +78,6 @@ fun new_animation(elements, duration, delay, callback) {
       elements[0] = elements;
    }
    animation.elements = elements;
-   animation.start_time = g.time;
    animation.duration = duration / 1000;
    animation.delay = delay / 1000;
    animation.callback = callback;
