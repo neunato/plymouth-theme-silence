@@ -62,21 +62,37 @@ fun centered(image, offset) {
    return position;
 }
 
-fun fade(elements, duration, opacity_start, opacity_end, easing) {
+fun new_animation(elements, duration, callback) {
    if (!elements[0]) {
       elements[0] = elements;
    }
    animation.elements = elements;
    animation.start_time = g.time;
    animation.duration = duration / 1000;
-   animation.opacity_start = opacity_start;
-   animation.opacity_end = opacity_end;
-   animation.easing = easing;
+   animation.callback = callback;
    g.animations[g.animations_at] = animation;
    g.animations_at++;
+   return animation;
+}
 
-   for (i = 0; elements[i]; i++) {
-      elements[i].SetOpacity(opacity_start);
+fun fade(element, duration, opacity_start, opacity_end, easing) {
+   animation = new_animation(element, duration, fade_callback);
+   animation.data.opacity_start = opacity_start;
+   animation.data.opacity_end = opacity_end;
+   animation.data.easing = easing;
+   fade_callback(0, animation);
+}
+
+fun fade_callback(progress, animation) {
+   opacity_start = animation.data.opacity_start;
+   opacity_end = animation.data.opacity_end;
+   opacity = animation.data.easing(progress);
+   opacity = Math.Max(0, opacity);
+   opacity = Math.Min(1, opacity);
+   opacity = opacity_start + (opacity_end - opacity_start) * opacity;
+
+   for (i = 0; animation.elements[i]; i++) {
+      animation.elements[i].SetOpacity(opacity);
    }
 }
 
@@ -153,9 +169,7 @@ fun on_progress(time, progress) {
    // track time for animations
    g.time = time;
    g.progress = progress;
-}
 
-fun on_update() {
    // fade animations
    if (g.time) {
       for (i = 0; i < g.animations_at; i++) {
@@ -167,15 +181,9 @@ fun on_update() {
             animation.start_time = g.time;
          }
          elapsed = g.time - animation.start_time;
-         opacity = elapsed / animation.duration;
-         opacity = animation.easing(opacity);
-         opacity = Math.Min(1, opacity);
-         opacity = animation.opacity_start + (animation.opacity_end - animation.opacity_start) * opacity;
-
-         for (j = 0; animation.elements[j]; j++) {
-            animation.elements[j].SetOpacity(opacity);
-         }
-         if (elapsed >= animation.duration) {
+         progress = elapsed / animation.duration;
+         animation.callback(progress, animation);
+         if (progress >= 1) {
             g.animations[i] = NULL;
          }
       }
@@ -204,6 +212,8 @@ fun on_message(text) {
 
 // TODO implement these?
 
+fun on_update() {}
+
 fun on_status(status) {}
 
 fun on_mode_question(prompt, input) {}
@@ -218,8 +228,8 @@ Plymouth.SetDisplayNormalFunction(on_mode_normal);
 Plymouth.SetDisplayPasswordFunction(on_mode_password);
 Plymouth.SetRootMountedFunction(on_root_mount);
 Plymouth.SetBootProgressFunction(on_progress);
-Plymouth.SetRefreshFunction(on_update);
 Plymouth.SetMessageFunction(on_message);
+Plymouth.SetRefreshFunction(on_update);
 Plymouth.SetUpdateStatusFunction(on_status);
 Plymouth.SetDisplayQuestionFunction(on_mode_question);
 Plymouth.SetDisplayPromptFunction(on_mode_prompt);
