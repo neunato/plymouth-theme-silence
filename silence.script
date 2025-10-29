@@ -49,7 +49,7 @@ fun init() {
    g.sprites.input_right.SetPosition(position.x + g.input_width, position.y);
    g.sprites.message.SetPosition(10, 10);
 
-   fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 1000, 0, 1, ease_out_cubic);
+   fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 1000, 0, 0, 1, ease_out_cubic);
 }
 
 fun centered(image, offset) {
@@ -62,21 +62,22 @@ fun centered(image, offset) {
    return position;
 }
 
-fun new_animation(elements, duration, callback) {
+fun new_animation(elements, duration, delay, callback) {
    if (!elements[0]) {
       elements[0] = elements;
    }
    animation.elements = elements;
    animation.start_time = g.time;
    animation.duration = duration / 1000;
+   animation.delay = delay / 1000;
    animation.callback = callback;
    g.animations[g.animations_at] = animation;
    g.animations_at++;
    return animation;
 }
 
-fun fade(element, duration, opacity_start, opacity_end, easing) {
-   animation = new_animation(element, duration, fade_callback);
+fun fade(element, duration, delay, opacity_start, opacity_end, easing) {
+   animation = new_animation(element, duration, delay, fade_callback);
    animation.data.opacity_start = opacity_start;
    animation.data.opacity_end = opacity_end;
    animation.data.easing = easing;
@@ -96,10 +97,10 @@ fun fade_callback(progress, animation) {
    }
 }
 
-fun shake(element, duration) {
+fun shake(element, duration, delay) {
    // note that running shake on an already shaking (or otherwise moving)
    // element would break things badly
-   animation = new_animation(element, duration, shake_callback);
+   animation = new_animation(element, duration, delay, shake_callback);
    for (i = 0; animation.elements[i]; i++) {
       animation.data.x_start[i] = animation.elements[i].GetX();
    }
@@ -143,7 +144,7 @@ fun exp(x) {
 fun on_mode_normal() {
    // password -> normal means password is being validated
    if (g.sprites.bullets) {
-      fade(g.sprites.bullets, 300, 1, 0.4, ease_out_cubic);
+      fade(g.sprites.bullets, 300, 0, 1, 0.4, ease_out_cubic);
    }
 }
 
@@ -194,7 +195,7 @@ fun on_root_mount() {
    g.sprites.progress_left = Sprite(g.images.progress_left);
    g.sprites.progress_right = Sprite(g.images.progress_right);
 
-   fade(g.sprites.bullets, 200, 0.4, 0, ease_in_cubic);
+   fade(g.sprites.bullets, 200, 0, 0.4, 0, ease_in_cubic);
 }
 
 fun on_progress(time, progress) {
@@ -213,6 +214,10 @@ fun on_progress(time, progress) {
             animation.start_time = g.time;
          }
          elapsed = g.time - animation.start_time;
+         if (elapsed < animation.delay) {
+            continue;
+         }
+         elapsed -= animation.delay;
          progress = elapsed / animation.duration;
          animation.callback(progress, animation);
          if (progress >= 1) {
@@ -274,7 +279,7 @@ if (mode != "boot") {
    position = centered(image);
    sprite = Sprite(image);
    sprite.SetPosition(position.x, position.y);
-   fade(sprite, 3000, 0, 1, ease_out_cubic);
+   fade(sprite, 3000, 0, 0, 1, ease_out_cubic);
    return;
 }
 
