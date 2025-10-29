@@ -10,6 +10,8 @@ g.input_border_radius = NULL;
 g.input_width = NULL;
 g.input_height = NULL;
 g.input_padding = NULL;
+g.input_x = NULL;        // needed to position bullets while input is shaking
+g.input_y = NULL;        // needed to position bullets while input is shaking
 
 g.sprites.input = NULL;
 g.sprites.input_left = NULL;
@@ -20,6 +22,7 @@ g.sprites.progress_right = NULL;
 g.sprites.bullets = NULL;
 g.sprites.message = NULL;
 
+g.mode = NULL;
 g.time = NULL;
 g.progress = NULL;
 g.progress_bar = 0;
@@ -41,6 +44,9 @@ fun init() {
 
    input_image = g.images.input.Scale(g.input_width, g.input_height);
    position = centered(input_image);
+
+   g.input_x = position.x;
+   g.input_y = position.y;
 
    g.sprites.input = Sprite(input_image);
    g.sprites.input_left = Sprite(g.images.input_left);
@@ -146,13 +152,19 @@ fun exp(x) {
 // plymouth callbacks
 
 fun on_mode_normal() {
-   // password -> normal means password is being validated
-   if (g.sprites.bullets) {
+   // password is being validated
+   if (g.mode == "password" && g.sprites.bullets) {
       fade(g.sprites.bullets, 300, 0, 1, 0.4, ease_out_cubic);
    }
+   g.mode = "normal";
 }
 
 fun on_mode_password(prompt, bullets) {
+   // invalid password
+   if (g.mode == "normal" && g.sprites.bullets) {
+      shake([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 700, 0);
+   }
+
    // update password bullets, this can be improved by fading
    // the characters out, at least when the password is invalid
    // (bullets is 0 and previous screen was normal)
@@ -163,8 +175,6 @@ fun on_mode_password(prompt, bullets) {
       bullet_size = (g.input_width - g.input_padding * 2) / (bullets * (1 + bullet_padding) - bullet_padding);
       bullet_size = Math.Min(bullet_size, bullet_max_size);
       bullet_padding = bullet_size * bullet_padding;
-      input_x = g.sprites.input.GetX() + g.input_padding;
-      input_y = g.sprites.input.GetY();
 
       if (bullet_size < bullet_max_size) {
          bullet_image = bullet_image.Scale(bullet_size, bullet_size);
@@ -178,14 +188,16 @@ fun on_mode_password(prompt, bullets) {
       if (g.sprites.bullets[i]) {
          continue;
       }
-      x = input_x + (bullet_size + bullet_padding) * i;
-      y = input_y + (g.input_height - bullet_size) / 2;
+      x = g.input_x + g.input_padding + (bullet_size + bullet_padding) * i;
+      y = g.input_y + (g.input_height - bullet_size) / 2;
       g.sprites.bullets[i] = Sprite(bullet_image);
       g.sprites.bullets[i].SetPosition(x, y);
    }
    for (i = bullets; g.sprites.bullets[i]; i++) {
       g.sprites.bullets[i] = NULL;
    }
+
+   g.mode = "password";
 }
 
 fun on_root_mount() {
@@ -234,8 +246,8 @@ fun on_progress(time, progress) {
    if (g.progress && g.progress_bar) {
       width = (g.input_width - g.input_padding * 2) * g.progress;
       height = g.input_height - g.input_padding * 2;
-      x = g.sprites.input.GetX() + g.input_padding;
-      y = g.sprites.input.GetY() + g.input_padding;
+      x = g.input_x + g.input_padding;
+      y = g.input_y + g.input_padding;
       g.sprites.progress.SetImage(g.images.progress.Scale(width, height));
       g.sprites.progress.SetPosition(x, y);
       g.sprites.progress_left.SetPosition(x - g.input_border_radius, y);
