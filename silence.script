@@ -22,6 +22,7 @@ g.sprites.progress_right = NULL;
 g.sprites.bullets = NULL;
 g.sprites.message = NULL;
 
+g.monitor_ready = false;
 g.mode = NULL;
 g.time = NULL;
 g.progress_bar = 0;
@@ -57,27 +58,21 @@ fun init_boot() {
    g.sprites.input.SetPosition(g.input_x, g.input_y, g.layer1);
    g.sprites.input_left.SetPosition(g.input_x - g.input_border_radius, g.input_y, g.layer1);
    g.sprites.input_right.SetPosition(g.input_x + g.input_width, g.input_y, g.layer1);
-
-   fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 5000, 0, 0, 1, ease_out_cubic);
 }
 
 fun init_shutdown() {
    messages = [
       "bye",
-      "goodbye",
       "the end",
       "that's all folks!",
       "hasta la vista, baby",
       "the truth is out there",
       "saving progress...",
       "the cake is a lie",
-      "not enough mana",
       "here and now",
-      "attention",
-      "touch grass",
       "light is faster than sound"
    ];
-   index = Math.Int(Math.Random() * 13);
+   index = Math.Int(Math.Random() * 9);
    message = messages[index];
    show_message(message, 1);
    fade(g.sprites.message, 3000, 0, 0, 1, ease_out_cubic);
@@ -246,6 +241,14 @@ fun on_root_mount() {
    fade([g.sprites.progress, g.sprites.progress_left, g.sprites.progress_right], 300, 0, 0, 1, ease_out_cubic);
 }
 
+fun on_hotplug() {
+   if (g.monitor_ready) {
+      return;
+   }
+   g.monitor_ready = true;
+   fade([g.sprites.input, g.sprites.input_left, g.sprites.input_right], 5000, 0, 0, 1, ease_out_cubic);
+}
+
 fun on_progress(time, progress) {
    // animations
    g.time = time;
@@ -311,6 +314,7 @@ Plymouth.SetRefreshRate(60);
 Plymouth.SetDisplayNormalFunction(on_mode_normal);
 Plymouth.SetDisplayPasswordFunction(on_mode_password);
 Plymouth.SetRootMountedFunction(on_root_mount);
+Plymouth.SetDisplayHotplugFunction(on_hotplug);
 Plymouth.SetBootProgressFunction(on_progress);
 Plymouth.SetMessageFunction(on_message);
 Plymouth.SetRefreshFunction(on_update);
